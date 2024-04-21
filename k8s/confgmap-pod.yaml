@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-pod
+spec:
+  containers:
+    - name: test
+      image: busybox:latest
+      command: ['sh', '-c', 'echo "The app is running!" && tail -f /dev/null']
+      volumeMounts:
+        - name: config-vol
+          mountPath: /etc/config
+  volumes:
+    - name: config-vol
+      configMap:
+        name: log-config
+        items:
+          - key: SPECIAL_LEVEL
+            path: log_level
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: log-config
+  namespace: default
+data:
+  SPECIAL_LEVEL: "very"

@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ldp-mysql-secret
+type: Opaque
+data:
+  password: MTIzNDU2Cg==
+  username: enIK
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldp-mysql
+  labels:
+    app: ldp-mysql-lab
+spec:
+  selector: # 匹配
+    app: ldp
+    tier: mysql
+  ports:
+    - name: mysql-service-port
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+      nodePort: 30306
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pvk8s-mysql
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /data/k8s
+    server: 10.211.55.7
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc-claim
+  labels:
+    app: ldp-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs # 这个值应该是固定那几个
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-stateful-set
+  labels:
+    app: ldp-mysql-stateful-set
+spec:
+  selector:
+    matchLabels:
+      app: ldp
+      tier: mysql
+  template:
+    metadata:
+      labels:
+        app: ldp
+        tier: mysql
+    spec:
+      containers:
+        - image: mysql:8.0
+          name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ldp-mysql-secret
+                  key: password
+            - name: MYSQL_DATABASE
+              value: ldp
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ldp-mysql-secret
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ldp-mysql-secret
+                  key: password
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc-claim
+
+# https://blog.51cto.com/u_93011/10139111
+# pvc 存在数据来，不能修改 第一次与第二次的初始化参数不一样。因为会对数据产生影响
+#  nfs 安装  rpcbind  nfs-utils
+# 服务启动  systemctl enable rpcbind     nfs-utils 需要启动这个 nfs-utils.service 网上有不是这个文件的。
+
+# 配置 /etc/export
+# [Entrypoint]: Creating database
+# Temporary server started.
