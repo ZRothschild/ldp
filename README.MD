@@ -13,9 +13,40 @@ google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```shell
 go install github.com/bufbuild/buf/cmd/buf@latest
 
-buf generate ./proto #  ./proto 代表 proto 文件所在路径
+buf generate ./proto #  ./proto 代表 proto 文件所在路径 那么 buf.yaml 需要放在 ./proto  下面  buf.gen.yaml 放在根目录
 ```
 
+```yaml
+# buf.gen.yaml 
+version: v1
+plugins:
+  - plugin: go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - plugin: go-grpc
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - plugin: grpc-gateway
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true
+```
+
+```yaml
+# buf.yaml
+version: v1
+deps:
+  - buf.build/googleapis/googleapis
+breaking:
+  use:
+    - FILE
+lint:
+  use:
+    - DEFAULT
+```
 
 ###
 
