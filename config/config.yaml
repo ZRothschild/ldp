@@ -1,0 +1,12 @@
+AppName: ldp
+Env: dev
+GrpcPort: 8098
+HttpPort: 9098
+Mysql:
+  User: root
+  Passwd: "123456"
+  Net: "tcp"
+  Addr: "127.0.0.1:3307"
+  DBName: ldp
+  Collation: utf8mb4_unicode_ci
+
