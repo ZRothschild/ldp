@@ -22,7 +22,7 @@ func NewDb(cfg *env.Config) *DB {
 		db = new(DB)
 	)
 	if err := db.Open(cfg); err != nil {
-		panic(err)
+		//panic(err)
 	}
 
 	return db

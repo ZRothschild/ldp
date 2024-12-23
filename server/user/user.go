@@ -19,7 +19,10 @@ func (s *userServer) mustEmbedUnimplementedUserServiceServer() {
 	panic("implement me")
 }
 
-func (s *userServer) Echo(ctx context.Context, msg *user.StringMessage) (*user.StringMessage, error) {
-	grpclog.Info(msg)
-	return msg, nil
+func (s *userServer) UserDetail(ctx context.Context, params *user.UserReq) (*user.UserResp, error) {
+	var (
+		resp = new(user.UserResp)
+	)
+	grpclog.Info(params)
+	return resp, nil
 }

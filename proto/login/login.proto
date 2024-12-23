@@ -1,17 +1,30 @@
 syntax = "proto3";
-package user.service;
+package login.service;
 option go_package = "github.com/ldp/server/login";
 
 import "google/api/annotations.proto";
 
-message StringMessage {
-  string value = 1;
+message LoginReq {
+  string username = 1;
+  string password = 2;
+  bool remember = 3;
 }
 
-service UserService {
-  rpc Echo(StringMessage) returns (StringMessage) {
+message LoginResp {
+    int32 code = 1;
+    string message = 2;
+    LoginDetail detail = 3;
+    string requestId = 4;
+}
+
+message LoginDetail {
+  string  Token  = 1;
+}
+
+service LoginService {
+  rpc Login(LoginReq) returns (LoginResp) {
     option (google.api.http) = {
-      post: "/v1/example/echo"
+      post: "/v1/ussr/login"
       body: "*"
     };
   }

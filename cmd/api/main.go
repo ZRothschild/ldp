@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/ZRothschild/ldp/gen/company"
+	"github.com/ZRothschild/ldp/gen/login"
+	"github.com/ZRothschild/ldp/gen/register"
 	"github.com/ZRothschild/ldp/infrastr/conf"
 	"github.com/ZRothschild/ldp/infrastr/mysql"
 	"google.golang.org/grpc/credentials/insecure"
@@ -11,8 +14,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ZRothschild/ldp/gen/user"            // Update
-	userSrv "github.com/ZRothschild/ldp/server/user" // Update
+	"github.com/ZRothschild/ldp/gen/user"
+	companySrv "github.com/ZRothschild/ldp/server/company"
+	loginSrv "github.com/ZRothschild/ldp/server/login"
+	registerSrv "github.com/ZRothschild/ldp/server/register"
+	userSrv "github.com/ZRothschild/ldp/server/user"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
@@ -36,6 +42,8 @@ func run() error {
 	var (
 		err  error
 		l    net.Listener
+		s    = grpc.NewServer()
+		mux  = runtime.NewServeMux()
 		addr = ":" + strconv.Itoa(conf.Conf.GrpcPort)
 	)
 
@@ -44,10 +52,11 @@ func run() error {
 		return err
 	}
 
-	// Create a gRPC server object
-	s := grpc.NewServer()
-	// Attach the Greeter service to the server
+	// 这里是注册grpc服务器服务，http 可以不注册
 	user.RegisterUserServiceServer(s, userSrv.NewUserServer())
+	login.RegisterLoginServiceServer(s, loginSrv.NewLoginServer())
+	register.RegisterRegisterServiceServer(s, registerSrv.NewRegisterServer())
+	company.RegisterCompanyServiceServer(s, companySrv.NewCompanyServer())
 
 	go func() {
 		log.Fatalln(s.Serve(l))
@@ -57,23 +66,50 @@ func run() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	// Register gRPC server endpoint
-	// Note: Make sure the gRPC server is running properly and accessible
-	mux := runtime.NewServeMux()
-	// 这里是直接监听 Server
+	// http 请求直接转发到 ServiceServer
 	if err = user.RegisterUserServiceHandlerServer(ctx, mux, userSrv.NewUserServer()); err != nil {
 		log.Printf("Failed RegisterUserServiceHandlerServer: %v", err)
 		return err
 	}
 
+	if err = login.RegisterLoginServiceHandlerServer(ctx, mux, loginSrv.NewLoginServer()); err != nil {
+		log.Printf("Failed RegisterLoginServiceHandlerServer: %v", err)
+		return err
+	}
+
+	if err = register.RegisterRegisterServiceHandlerServer(ctx, mux, registerSrv.NewRegisterServer()); err != nil {
+		log.Printf("Failed RegisterRegisterServiceHandlerServer: %v", err)
+		return err
+	}
+
+	if err = company.RegisterCompanyServiceHandlerServer(ctx, mux, companySrv.NewCompanyServer()); err != nil {
+		log.Printf("Failed RegisterCompanyServiceHandlerServer: %v", err)
+		return err
+	}
+
+	// http 请求先转发到 ServiceClient 再由 ServiceClient 转发到 ServiceServer 这里会多一层中间件
+
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	//opts := []grpc.DialOption{grpc.WithInsecure()}
-	// 这里是先通过 cli 在请求Server
+
 	if err = user.RegisterUserServiceHandlerFromEndpoint(ctx, mux, addr, opts); err != nil {
 		log.Printf("Failed RegisterUserServiceHandlerFromEndpoint: %v", err)
 		return err
 	}
 
+	if err = login.RegisterLoginServiceHandlerFromEndpoint(ctx, mux, addr, opts); err != nil {
+		log.Printf("Failed RegisterLoginServiceHandlerFromEndpoint: %v", err)
+		return err
+	}
+
+	if err = register.RegisterRegisterServiceHandlerFromEndpoint(ctx, mux, addr, opts); err != nil {
+		log.Printf("Failed RegisterRegisterServiceHandlerFromEndpoint: %v", err)
+		return err
+	}
+
+	if err = company.RegisterCompanyServiceHandlerFromEndpoint(ctx, mux, addr, opts); err != nil {
+		log.Printf("Failed RegisterCompanyServiceHandlerFromEndpoint: %v", err)
+		return err
+	}
 	addr = ":" + strconv.Itoa(conf.Conf.HttpPort)
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
 	return http.ListenAndServe(addr, mux)
