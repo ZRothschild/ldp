@@ -22,7 +22,14 @@ message RegisterReq {
 
   string license = 14;
 
-  int64 RegisterType  =15; // 注册类型。1 普通用户 2 企业
+  RegisterType registerType  =15; // 注册类型。1 普通用户 2 企业
+
+  string code = 16; // 验证码
+}
+
+enum RegisterType {
+  User = 0;
+  Company = 1;
 }
 
 message RegisterResp {

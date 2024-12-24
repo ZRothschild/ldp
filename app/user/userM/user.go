@@ -16,7 +16,7 @@ type (
 		IdCardFront string `gorm:"type:varchar(255);column:id_card_front;not null;default:'';comment:身份证正面" json:"idCardFront"`
 		IdCardBack  string `gorm:"type:varchar(255);column:id_card_back;not null;default:'';comment:身份证反面" json:"idCardBack"`
 		Avatar      string `gorm:"type:varchar(255);column:avatar;not null;default:'';comment:用户头像" json:"avatar"`
-		Seniority   int    `gorm:"type:int;column:seniority;not null;default:0;comment:用户工龄" json:"seniority"`
+		Seniority   uint64 `gorm:"type:int;column:seniority;not null;default:0;comment:用户工龄" json:"seniority"`
 		Profile     string `gorm:"type:varchar(255);column:profile;not null;default:'';comment:用户简介" json:"profile"`
 		Location    string `gorm:"type:varchar(255);column:location;not null;default:'';comment:工作地址" json:"location"`
 		CompanyName string `gorm:"type:varchar(255);column:company_name;not null;default:'';comment:工作单位" json:"companyName"`

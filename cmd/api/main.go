@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/ZRothschild/ldp/app/company/companyRepo"
+	"github.com/ZRothschild/ldp/app/user/userRepo"
+	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyRepo"
 	"github.com/ZRothschild/ldp/gen/company"
 	"github.com/ZRothschild/ldp/gen/login"
 	"github.com/ZRothschild/ldp/gen/register"
@@ -52,10 +55,19 @@ func run() error {
 		return err
 	}
 
+	db := mysql.NewDb(conf.Conf)
+
+	companyR := companyRepo.NewCompanyRepo(db)
+	userR := userRepo.NewUserRepo(db)
+	userBindCompanyR := userBindCompanyRepo.NewUserBindCompanyRepo(db)
+
+	registerS := registerSrv.NewRegisterServer(userR, companyR, userBindCompanyR)
+	loginS := loginSrv.NewLoginServer(userR)
+
 	// 这里是注册grpc服务器服务，http 可以不注册
 	user.RegisterUserServiceServer(s, userSrv.NewUserServer())
-	login.RegisterLoginServiceServer(s, loginSrv.NewLoginServer())
-	register.RegisterRegisterServiceServer(s, registerSrv.NewRegisterServer())
+	login.RegisterLoginServiceServer(s, loginS)
+	register.RegisterRegisterServiceServer(s, registerS)
 	company.RegisterCompanyServiceServer(s, companySrv.NewCompanyServer())
 
 	go func() {
@@ -72,12 +84,12 @@ func run() error {
 		return err
 	}
 
-	if err = login.RegisterLoginServiceHandlerServer(ctx, mux, loginSrv.NewLoginServer()); err != nil {
+	if err = login.RegisterLoginServiceHandlerServer(ctx, mux, loginS); err != nil {
 		log.Printf("Failed RegisterLoginServiceHandlerServer: %v", err)
 		return err
 	}
 
-	if err = register.RegisterRegisterServiceHandlerServer(ctx, mux, registerSrv.NewRegisterServer()); err != nil {
+	if err = register.RegisterRegisterServiceHandlerServer(ctx, mux, registerS); err != nil {
 		log.Printf("Failed RegisterRegisterServiceHandlerServer: %v", err)
 		return err
 	}
@@ -116,7 +128,6 @@ func run() error {
 }
 
 func main() {
-	mysql.NewDb(conf.Conf)
 	if err := run(); err != nil {
 		grpclog.Fatal(err)
 	}

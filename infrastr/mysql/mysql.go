@@ -2,8 +2,8 @@ package mysql
 
 import (
 	"github.com/ZRothschild/ldp/app/user/userM"
-	"github.com/ZRothschild/ldp/infrastr/env"
 	"github.com/ZRothschild/ldp/infrastr/log"
+	"github.com/ZRothschild/ldp/infrastr/static/config"
 	mysqlD "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -17,7 +17,7 @@ type (
 	}
 )
 
-func NewDb(cfg *env.Config) *DB {
+func NewDb(cfg *config.Config) *DB {
 	var (
 		db = new(DB)
 	)
@@ -28,7 +28,7 @@ func NewDb(cfg *env.Config) *DB {
 	return db
 }
 
-func (db *DB) NewConfig(cfg *env.Config) *mysqlD.Config {
+func (db *DB) NewConfig(cfg *config.Config) *mysqlD.Config {
 	var (
 		c = mysqlD.NewConfig()
 	)
@@ -42,7 +42,7 @@ func (db *DB) NewConfig(cfg *env.Config) *mysqlD.Config {
 	return c
 }
 
-func (db *DB) Open(cfg *env.Config) error {
+func (db *DB) Open(cfg *config.Config) error {
 	var (
 		err error
 	)

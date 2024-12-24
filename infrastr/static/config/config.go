@@ -1,4 +1,4 @@
-package env
+package config
 
 type (
 	Config struct {
@@ -20,7 +20,7 @@ type (
 )
 
 const (
-	ConfigFileName = "config"
-	ConfigFileType = "yaml"
-	ConfigFilePath = "./config"
+	FileName = "config"
+	FileType = "yaml"
+	FilePath = "./config"
 )
