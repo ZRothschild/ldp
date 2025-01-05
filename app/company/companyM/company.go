@@ -9,6 +9,7 @@ type (
 		baseM.BaseM
 		CompanyName string `gorm:"type:varchar(255);column:company_name;not null;default:'';comment:公司" json:"companyName"`
 		Phone       string `gorm:"type:varchar(255);column:phone;not null;default:'';comment:座机号" json:"phone"`
+		Prefix      string `gorm:"type:varchar(255);column:mobile;not null;default:'+86';comment:手机前缀" json:"prefix"`
 		Mobile      string `gorm:"type:varchar(255);column:mobile;not null;default:'';comment:手机号" json:"mobile"`
 		IdCardFront string `gorm:"type:varchar(255);column:id_card_front;not null;default:'';comment:法人身份证正面" json:"idCardFront"`
 		IdCardBack  string `gorm:"type:varchar(255);column:id_card_back;not null;default:'';comment:法人身份证反面" json:"idCardBack"`

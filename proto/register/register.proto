@@ -7,10 +7,11 @@ import "google/api/annotations.proto";
 message RegisterReq {
   string nickname = 1;
   string password = 2;
-  string username = 3;
+  string confirm = 3;
   string email = 4;
-
   string mobile = 5;
+
+  string username = 17;
   string phone = 6;
   string idCardFront = 7;
   string idCardBack = 8;
@@ -19,17 +20,16 @@ message RegisterReq {
   string location = 11;
   string companyName = 12;
   string avatar = 13;
-
   string license = 14;
-
   RegisterType registerType  =15; // 注册类型。1 普通用户 2 企业
-
-  string code = 16; // 验证码
+  string captcha = 16; // 验证码
+  string prefix = 18; // 移动电话前缀
 }
 
 enum RegisterType {
-  User = 0;
-  Company = 1;
+  _ = 0;
+  User = 1;
+  Company = 2;
 }
 
 message RegisterResp {
@@ -41,7 +41,7 @@ message RegisterResp {
 service RegisterService {
   rpc Register(RegisterReq) returns (RegisterResp) {
     option (google.api.http) = {
-      post: "/v1/user/register"
+      post: "/api/v1/user/register"
       body: "*"
     };
   }

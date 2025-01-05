@@ -8,6 +8,7 @@ type (
 	User struct {
 		baseM.BaseM
 		Phone       string `gorm:"type:varchar(255);column:phone;not null;default:'';comment:座机号" json:"phone"`
+		Prefix      string `gorm:"type:varchar(255);column:prefix;not null;default:'+86';comment:手机前缀" json:"prefix"`
 		Mobile      string `gorm:"type:varchar(255);column:mobile;not null;default:'';comment:手机号" json:"mobile"`
 		Email       string `gorm:"type:varchar(255);column:email;not null;default:'';comment:用户邮箱" json:"email"`
 		Username    string `gorm:"type:varchar(255);column:username;not null;default:'';comment:用户真实名称" json:"username"`

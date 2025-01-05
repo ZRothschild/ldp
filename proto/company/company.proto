@@ -35,7 +35,7 @@ message CompanyDetail {
 service CompanyService {
   rpc CompanyDetail(CompanyReq) returns (CompanyResp) {
     option (google.api.http) = {
-      post: "/v1/company/detail"
+      post: "/api/v1/company/detail"
       body: "*"
     };
   }

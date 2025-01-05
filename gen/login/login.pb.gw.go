@@ -71,7 +71,7 @@ func RegisterLoginServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/login.service.LoginService/Login", runtime.WithHTTPPathPattern("/v1/ussr/login"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/login.service.LoginService/Login", runtime.WithHTTPPathPattern("/api/v1/ussr/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -135,7 +135,7 @@ func RegisterLoginServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/login.service.LoginService/Login", runtime.WithHTTPPathPattern("/v1/ussr/login"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/login.service.LoginService/Login", runtime.WithHTTPPathPattern("/api/v1/ussr/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -155,7 +155,7 @@ func RegisterLoginServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
-	pattern_LoginService_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "ussr", "login"}, ""))
+	pattern_LoginService_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "ussr", "login"}, ""))
 )
 
 var (

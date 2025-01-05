@@ -1,7 +1,9 @@
 package mysql
 
 import (
+	"github.com/ZRothschild/ldp/app/company/companyM"
 	"github.com/ZRothschild/ldp/app/user/userM"
+	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyM"
 	"github.com/ZRothschild/ldp/infrastr/log"
 	"github.com/ZRothschild/ldp/infrastr/static/config"
 	mysqlD "github.com/go-sql-driver/mysql"
@@ -82,6 +84,12 @@ func (db *DB) Open(cfg *config.Config) error {
 
 func (db *DB) Migrator() error {
 	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户信息表';").AutoMigrate(&userM.User{}); err != nil {
+		return err
+	}
+	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公司表';").AutoMigrate(&companyM.Company{}); err != nil {
+		return err
+	}
+	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户绑定公司表';").AutoMigrate(&userBindCompanyM.UserBindCompany{}); err != nil {
 		return err
 	}
 	return nil

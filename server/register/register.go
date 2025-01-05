@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"crypto/md5"
 	"github.com/ZRothschild/ldp/app/base/baseM"
 	"github.com/ZRothschild/ldp/app/company/companyM"
 	"github.com/ZRothschild/ldp/app/company/companyRepo"
@@ -11,6 +12,7 @@ import (
 	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyRepo"
 	"github.com/ZRothschild/ldp/gen/register"
 	"google.golang.org/grpc/grpclog"
+	"gorm.io/gorm"
 )
 
 type registerServer struct {
@@ -37,18 +39,29 @@ func (s *registerServer) mustEmbedUnimplementedUserServiceServer() {
 // Register 用户登陆
 func (s *registerServer) Register(ctx context.Context, params *register.RegisterReq) (*register.RegisterResp, error) {
 	var (
-		err      error
-		tx       = s.UserRepo.DB.WithContext(ctx).Begin()
-		resp     = new(register.RegisterResp)
+		err    error
+		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
+		resp   = register.RegisterResp{
+			Message: "注册成功",
+		}
 		userInfo = &userM.User{
 			Nickname: params.GetNickname(),
-			Username: params.GetUsername(),
-			Password: params.GetPassword(),
+			Password: string(md5pwd[:]),
 		}
 		companyInfo = new(companyM.Company)
 	)
 
-	if params.GetRegisterType() == register.RegisterType_User {
+	// 校验用户名称是否存在
+
+	if params.GetCaptcha() == "" {
+
+	}
+
+	if params.GetPassword() == params.GetConfirm() {
+		//return nil, status.Error(codes.InvalidArgument, "Passwords do not match")
+	}
+
+	if params.GetRegisterType() != register.RegisterType_Company {
 		userInfo = &userM.User{
 			Nickname:    params.GetNickname(),
 			Username:    params.GetUsername(),
@@ -57,6 +70,7 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 			CompanyName: params.GetCompanyName(),
 			Phone:       params.GetPhone(),
 			Mobile:      params.GetMobile(),
+			Prefix:      params.GetPrefix(),
 			IdCardFront: params.GetIdCardFront(),
 			IdCardBack:  params.GetIdCardBack(),
 			Avatar:      params.GetAvatar(),
@@ -66,16 +80,20 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 		}
 	}
 
-	if err = s.UserRepo.Create(ctx, userInfo, tx); err != nil {
-		return resp, err
-	}
+	if err = s.UserRepo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err = s.UserRepo.Create(ctx, userInfo, tx); err != nil {
+			return err
+		}
 
-	base := baseM.BaseM{
-		CreatedBy: userInfo.ID,
-		UpdatedBy: userInfo.ID,
-	}
-	
-	if params.GetRegisterType() == register.RegisterType_Company {
+		if params.GetRegisterType() == register.RegisterType_Company {
+			return err
+		}
+
+		base := baseM.BaseM{
+			CreatedBy: userInfo.ID,
+			UpdatedBy: userInfo.ID,
+		}
+
 		companyInfo = &companyM.Company{
 			BaseM:       base,
 			CompanyName: params.GetCompanyName(),
@@ -90,17 +108,20 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 			License:     params.GetLicense(),
 		}
 		if err = s.CompanyRepo.Create(ctx, companyInfo, tx); err != nil {
-			return resp, err
+			return err
 		}
 		UserBindCompanyInfo := &userBindCompanyM.UserBindCompany{
 			BaseM:        base,
 			UserId:       userInfo.ID,
 			CompanyId:    companyInfo.ID,
-			Relationship: userBindCompanyM.SuperRelationship,
+			Relationship: userBindCompanyM.SuperRelationship1,
 		}
 		if err = s.UserBindCompanyRepo.Create(ctx, UserBindCompanyInfo, tx); err != nil {
-			return resp, err
+			return err
 		}
+		return err
+	}); err != nil {
+		return nil, err
 	}
 
 	grpclog.Info(params, resp)

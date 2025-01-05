@@ -34,7 +34,7 @@ message UserDetail {
 service UserService {
   rpc UserDetail(UserReq) returns (UserResp) {
     option (google.api.http) = {
-      post: "/v1/user/detail"
+      post: "/api/v1/user/detail"
       body: "*"
     };
   }

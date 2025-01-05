@@ -71,7 +71,7 @@ func RegisterRegisterServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/register.service.RegisterService/Register", runtime.WithHTTPPathPattern("/v1/user/register"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/register.service.RegisterService/Register", runtime.WithHTTPPathPattern("/api/v1/user/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -135,7 +135,7 @@ func RegisterRegisterServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/register.service.RegisterService/Register", runtime.WithHTTPPathPattern("/v1/user/register"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/register.service.RegisterService/Register", runtime.WithHTTPPathPattern("/api/v1/user/register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -155,7 +155,7 @@ func RegisterRegisterServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 }
 
 var (
-	pattern_RegisterService_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "user", "register"}, ""))
+	pattern_RegisterService_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "user", "register"}, ""))
 )
 
 var (

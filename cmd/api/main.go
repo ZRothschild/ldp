@@ -47,6 +47,7 @@ func run() error {
 		l    net.Listener
 		s    = grpc.NewServer()
 		mux  = runtime.NewServeMux()
+		db   = mysql.NewDb(conf.Conf)
 		addr = ":" + strconv.Itoa(conf.Conf.GrpcPort)
 	)
 
@@ -54,8 +55,6 @@ func run() error {
 		log.Printf("Failed to listen: %v", err)
 		return err
 	}
-
-	db := mysql.NewDb(conf.Conf)
 
 	companyR := companyRepo.NewCompanyRepo(db)
 	userR := userRepo.NewUserRepo(db)
