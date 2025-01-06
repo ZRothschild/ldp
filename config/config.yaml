@@ -2,6 +2,7 @@ AppName: ldp
 Env: dev
 GrpcPort: 8098
 HttpPort: 9098
+JwtSk: "dSPTIVk7d0AfjGG@ls4d*Q0Z38*59L4h"
 Mysql:
   User: root
   Passwd: "123456"

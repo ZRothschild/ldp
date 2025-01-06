@@ -12,5 +12,5 @@ type (
 )
 
 const (
-	SuperRelationship1 = 100
+	SuperRelationship = 100
 )

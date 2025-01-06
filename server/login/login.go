@@ -2,8 +2,12 @@ package user
 
 import (
 	"context"
+	"crypto/md5"
+	"github.com/ZRothschild/ldp/app/user/userM"
 	"github.com/ZRothschild/ldp/app/user/userRepo"
 	"github.com/ZRothschild/ldp/gen/login"
+	"github.com/ZRothschild/ldp/infrastr/conf"
+	"github.com/ZRothschild/ldp/infrastr/lib/jwt"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -25,9 +29,22 @@ func (s *loginServer) mustEmbedUnimplementedUserServiceServer() {
 
 func (s *loginServer) Login(ctx context.Context, params *login.LoginReq) (*login.LoginResp, error) {
 	var (
-		resp = new(login.LoginResp)
+		err      error
+		userInfo = new(userM.User)
+		resp     = &login.LoginResp{
+			Message: "success",
+		}
+		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
 	)
 
+	// 查询用户信息是否在数据库
+	if err = s.UserRepo.Login(ctx, params.GetNickname(), string(md5pwd), userInfo); err != nil {
+		return resp, err
+	}
+
+	if resp.Detail.Token, err = jwt.SignJwt(conf.Conf.JwtSk, userInfo.Nickname); err != nil {
+		return resp, err
+	}
 	grpclog.Info(params, resp)
 	return resp, nil
 }

@@ -41,12 +41,12 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 	var (
 		err    error
 		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
-		resp   = register.RegisterResp{
+		resp   = &register.RegisterResp{
 			Message: "注册成功",
 		}
 		userInfo = &userM.User{
 			Nickname: params.GetNickname(),
-			Password: string(md5pwd[:]),
+			Password: string(md5pwd),
 		}
 		companyInfo = new(companyM.Company)
 	)
@@ -114,7 +114,7 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 			BaseM:        base,
 			UserId:       userInfo.ID,
 			CompanyId:    companyInfo.ID,
-			Relationship: userBindCompanyM.SuperRelationship1,
+			Relationship: userBindCompanyM.SuperRelationship,
 		}
 		if err = s.UserBindCompanyRepo.Create(ctx, UserBindCompanyInfo, tx); err != nil {
 			return err

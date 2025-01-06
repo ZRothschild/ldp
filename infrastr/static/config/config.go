@@ -6,6 +6,7 @@ type (
 		Env      string
 		GrpcPort int
 		HttpPort int
+		JwtSk    string
 		Mysql
 	}
 

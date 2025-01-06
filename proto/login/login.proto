@@ -5,12 +5,19 @@ option go_package = "github.com/ldp/server/login";
 import "google/api/annotations.proto";
 
 message LoginReq {
-  string username = 1;
+  string  nickname= 1;
   string password = 2;
   bool remember = 3;
-  string code = 4; // 验证码
-  int64 loginType  =5; // 登陆类型 1 用户密码 2  邮箱 3 手机
+  string captcha = 4; // 验证码
+  LoginType loginType  =5; // 登陆类型 1 用户密码 2  邮箱 3 手机
 }
+
+enum LoginType {
+  _ = 0;
+  Account = 1;
+  Mobile = 2;
+}
+
 
 message LoginResp {
     int32 code = 1;
@@ -20,7 +27,7 @@ message LoginResp {
 }
 
 message LoginDetail {
-  string  Token  = 1;
+  string  token  = 1;
 }
 
 service LoginService {
