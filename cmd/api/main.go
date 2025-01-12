@@ -5,25 +5,25 @@ import (
 	"github.com/ZRothschild/ldp/app/company/companyRepo"
 	"github.com/ZRothschild/ldp/app/user/userRepo"
 	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyRepo"
+	"github.com/ZRothschild/ldp/cmd/api/opt"
 	"github.com/ZRothschild/ldp/gen/company"
 	"github.com/ZRothschild/ldp/gen/login"
 	"github.com/ZRothschild/ldp/gen/register"
+	"github.com/ZRothschild/ldp/gen/user"
 	"github.com/ZRothschild/ldp/infrastr/conf"
 	"github.com/ZRothschild/ldp/infrastr/mysql"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/grpclog"
-	"log"
-	"net"
-	"net/http"
-	"strconv"
-
-	"github.com/ZRothschild/ldp/gen/user"
 	companySrv "github.com/ZRothschild/ldp/server/company"
 	loginSrv "github.com/ZRothschild/ldp/server/login"
 	registerSrv "github.com/ZRothschild/ldp/server/register"
 	userSrv "github.com/ZRothschild/ldp/server/user"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/grpclog"
+	"log"
+	"net"
+	"net/http"
+	"strconv"
 )
 
 /*
@@ -43,10 +43,15 @@ or
 
 func run() error {
 	var (
-		err  error
-		l    net.Listener
-		s    = grpc.NewServer()
-		mux  = runtime.NewServeMux()
+		err error
+		l   net.Listener
+		s   = grpc.NewServer()
+		mux = runtime.NewServeMux(
+			runtime.WithErrorHandler(opt.CustomHTTPErrorHandler),
+			runtime.WithForwardResponseRewriter(opt.CustomForwardResponseRewriter),
+			runtime.WithOutgoingHeaderMatcher(opt.CustomOutgoingHeaderMatcher),
+			runtime.WithOutgoingTrailerMatcher(opt.CustomOutgoingTrailerMatcher),
+		)
 		db   = mysql.NewDb(conf.Conf)
 		addr = ":" + strconv.Itoa(conf.Conf.GrpcPort)
 	)

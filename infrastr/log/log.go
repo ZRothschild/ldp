@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ZRothschild/ldp/infrastr/lib/tool"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
 	"log/slog"
@@ -65,15 +66,15 @@ func (l *OrmLog) LogMode(level logger.LogLevel) logger.Interface {
 }
 
 func (l *OrmLog) Info(ctx context.Context, msg string, arg ...interface{}) {
-	l.Logger.InfoContext(ctx, fmt.Sprintf(msg, arg))
+	l.Logger.InfoContext(ctx, fmt.Sprintf(msg, arg...))
 }
 
 func (l *OrmLog) Warn(ctx context.Context, msg string, arg ...interface{}) {
-	l.Logger.WarnContext(ctx, fmt.Sprintf(msg, arg))
+	l.Logger.WarnContext(ctx, fmt.Sprintf(msg, arg...))
 }
 
 func (l *OrmLog) Error(ctx context.Context, msg string, arg ...interface{}) {
-	l.Logger.ErrorContext(ctx, fmt.Sprintf(msg, arg))
+	l.Logger.ErrorContext(ctx, fmt.Sprintf(msg, arg...))
 }
 
 func (l *OrmLog) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
@@ -82,21 +83,26 @@ func (l *OrmLog) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 	}
 	var (
 		s = time.Since(begin)
-		f = func(str string, i interface{}) {
+		f = func(str string, i interface{}, level logger.LogLevel) {
 			sql, rows := fc()
-			if rows == -1 {
-				l.Logger.InfoContext(ctx, str, utils.FileWithLineNum(), i, float64(s.Nanoseconds())/1e6, "-", sql)
+			ok := tool.Include(level, []logger.LogLevel{logger.Warn, logger.Error}) > -1
+			if rows == -1 && ok {
+				l.Info(ctx, str, utils.FileWithLineNum(), i, float64(s.Nanoseconds())/1e6, "-", sql)
+			} else if ok {
+				l.Info(ctx, str, utils.FileWithLineNum(), i, float64(s.Nanoseconds())/1e6, rows, sql)
+			} else if rows == -1 {
+				l.Info(ctx, str, utils.FileWithLineNum(), float64(s.Nanoseconds())/1e6, "-", sql)
 			} else {
-				l.Logger.InfoContext(ctx, str, utils.FileWithLineNum(), i, float64(s.Nanoseconds())/1e6, rows, sql)
+				l.Info(ctx, str, utils.FileWithLineNum(), float64(s.Nanoseconds())/1e6, rows, sql)
 			}
 		}
 	)
 	switch {
 	case err != nil && l.Config.LogLevel >= logger.Error && (!errors.Is(err, logger.ErrRecordNotFound) || !l.Config.IgnoreRecordNotFoundError):
-		f(l.traceErrStr, err)
+		f(l.traceErrStr, err, logger.Error)
 	case s > l.Config.SlowThreshold && l.Config.SlowThreshold != 0 && l.Config.LogLevel >= logger.Warn:
-		f(l.traceWarnStr, fmt.Sprintf("SLOW SQL >= %v", l.Config.SlowThreshold))
+		f(l.traceWarnStr, fmt.Sprintf("SLOW SQL >= %v", l.Config.SlowThreshold), logger.Error)
 	case l.Config.LogLevel == logger.Info:
-		f(l.traceStr, "")
+		f(l.traceStr, "", logger.Info)
 	}
 }

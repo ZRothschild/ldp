@@ -10,7 +10,9 @@ import (
 	"github.com/ZRothschild/ldp/app/user/userRepo"
 	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyM"
 	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyRepo"
+	"github.com/ZRothschild/ldp/gen/common"
 	"github.com/ZRothschild/ldp/gen/register"
+	"github.com/ZRothschild/ldp/infrastr/static/code"
 	"google.golang.org/grpc/grpclog"
 	"gorm.io/gorm"
 )
@@ -37,12 +39,12 @@ func (s *registerServer) mustEmbedUnimplementedUserServiceServer() {
 }
 
 // Register 用户登陆
-func (s *registerServer) Register(ctx context.Context, params *register.RegisterReq) (*register.RegisterResp, error) {
+func (s *registerServer) Register(ctx context.Context, params *register.RegisterReq) (*common.CommonResp, error) {
 	var (
 		err    error
 		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
-		resp   = &register.RegisterResp{
-			Message: "注册成功",
+		resp   = &common.CommonResp{
+			Success: true,
 		}
 		userInfo = &userM.User{
 			Nickname: params.GetNickname(),
@@ -57,15 +59,14 @@ func (s *registerServer) Register(ctx context.Context, params *register.Register
 
 	}
 
-	if params.GetPassword() == params.GetConfirm() {
-		//return nil, status.Error(codes.InvalidArgument, "Passwords do not match")
+	if params.GetPassword() != params.GetConfirm() {
+		return nil, code.PwdConfirmNotMatchErr
 	}
 
 	if params.GetRegisterType() != register.RegisterType_Company {
 		userInfo = &userM.User{
 			Nickname:    params.GetNickname(),
 			Username:    params.GetUsername(),
-			Password:    params.GetPassword(),
 			Email:       params.GetEmail(),
 			CompanyName: params.GetCompanyName(),
 			Phone:       params.GetPhone(),

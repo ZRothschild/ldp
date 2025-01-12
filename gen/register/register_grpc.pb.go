@@ -8,6 +8,7 @@ package register
 
 import (
 	context "context"
+	common "github.com/ZRothschild/ldp/gen/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -26,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RegisterServiceClient interface {
-	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error)
+	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*common.CommonResp, error)
 }
 
 type registerServiceClient struct {
@@ -37,8 +38,8 @@ func NewRegisterServiceClient(cc grpc.ClientConnInterface) RegisterServiceClient
 	return &registerServiceClient{cc}
 }
 
-func (c *registerServiceClient) Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error) {
-	out := new(RegisterResp)
+func (c *registerServiceClient) Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*common.CommonResp, error) {
+	out := new(common.CommonResp)
 	err := c.cc.Invoke(ctx, RegisterService_Register_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (c *registerServiceClient) Register(ctx context.Context, in *RegisterReq, o
 // All implementations must embed UnimplementedRegisterServiceServer
 // for forward compatibility
 type RegisterServiceServer interface {
-	Register(context.Context, *RegisterReq) (*RegisterResp, error)
+	Register(context.Context, *RegisterReq) (*common.CommonResp, error)
 	mustEmbedUnimplementedRegisterServiceServer()
 }
 
@@ -58,7 +59,7 @@ type RegisterServiceServer interface {
 type UnimplementedRegisterServiceServer struct {
 }
 
-func (UnimplementedRegisterServiceServer) Register(context.Context, *RegisterReq) (*RegisterResp, error) {
+func (UnimplementedRegisterServiceServer) Register(context.Context, *RegisterReq) (*common.CommonResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 func (UnimplementedRegisterServiceServer) mustEmbedUnimplementedRegisterServiceServer() {}

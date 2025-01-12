@@ -8,6 +8,7 @@ import (
 	"github.com/ZRothschild/ldp/gen/login"
 	"github.com/ZRothschild/ldp/infrastr/conf"
 	"github.com/ZRothschild/ldp/infrastr/lib/jwt"
+	"github.com/ZRothschild/ldp/infrastr/static/code"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -32,17 +33,17 @@ func (s *loginServer) Login(ctx context.Context, params *login.LoginReq) (*login
 		err      error
 		userInfo = new(userM.User)
 		resp     = &login.LoginResp{
-			Message: "success",
+			Success: true,
 		}
 		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
 	)
 
 	// 查询用户信息是否在数据库
 	if err = s.UserRepo.Login(ctx, params.GetNickname(), string(md5pwd), userInfo); err != nil {
-		return resp, err
+		return resp, code.PwdOrNicknameMatchErr
 	}
 
-	if resp.Detail.Token, err = jwt.SignJwt(conf.Conf.JwtSk, userInfo.Nickname); err != nil {
+	if resp.Data.Token, err = jwt.SignJwt(conf.Conf.JwtSk, userInfo.Nickname); err != nil {
 		return resp, err
 	}
 	grpclog.Info(params, resp)

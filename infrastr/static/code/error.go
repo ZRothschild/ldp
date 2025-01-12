@@ -1,30 +1,14 @@
 package code
 
 import (
-	"fmt"
-	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/anypb"
 )
 
-type (
-	CustomError struct {
-		RequestId string `json:"requestId"`
-		Code      codes.Code
-		Message   string
-		Details   []*anypb.Any
-	}
+var (
+	MinCode                codes.Code = 100000
+	PwdConfirmNotMatchCode codes.Code = 100010
+	PwdConfirmNotMatchErr             = status.Error(PwdConfirmNotMatchCode, "Passwords do not match")
+	PwdOrNicknameMatchCode codes.Code = 100020
+	PwdOrNicknameMatchErr             = status.Error(PwdOrNicknameMatchCode, "user passwords or nickname do not match")
 )
-
-func (c CustomError) Error() string {
-	return fmt.Sprintf("rpc error: code = %d desc = %s detail: %v requestId: %v", c.Code, c.Message, c.Details, c.RequestId)
-}
-
-func (c CustomError) GRPCStatus() *status.Status {
-	return status.FromProto(&spb.Status{
-		Code:    int32(c.Code),
-		Message: c.Message,
-		Details: c.Details,
-	})
-}

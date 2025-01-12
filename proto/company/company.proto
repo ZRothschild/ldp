@@ -1,6 +1,6 @@
 syntax = "proto3";
 package company.service;
-option go_package = "github.com/ldp/server/company";
+option go_package = "github.com/ZRothschild/ldp/gen/company";
 
 import "google/api/annotations.proto";
 
