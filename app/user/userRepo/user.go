@@ -19,6 +19,7 @@ type (
 	FirstCondParams struct {
 		Nickname string
 		Password string
+		Id       int64 // 用户表ID
 	}
 )
 
@@ -45,6 +46,13 @@ func (r *UserRepo) First(ctx context.Context, params FirstCondParams, dest inter
 		tx = r.DB.DB
 	}
 	return FirstCond(ctx, tx, params).First(dest).Error
+}
+
+func (r *UserRepo) ById(ctx context.Context, id int64, dest interface{}) (err error) {
+	if err = r.First(ctx, FirstCondParams{Id: id}, dest, nil); err != nil {
+		return err
+	}
+	return err
 }
 
 func (r *UserRepo) Login(ctx context.Context, nickname, password string, dest interface{}) (err error) {

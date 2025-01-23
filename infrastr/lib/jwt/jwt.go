@@ -9,23 +9,30 @@ import (
 type (
 	MyClaims struct {
 		jwt.RegisteredClaims
+		UserInfo UserInfo
+	}
+
+	UserInfo struct {
+		Id       uint64 `json:"id"`
+		Nickname string `json:"nickname"`
 	}
 )
 
 // SignJwt 生成jwt
-func SignJwt(sk, nickname string) (t string, err error) {
+func SignJwt(sk string, user UserInfo) (t string, err error) {
 	var (
 		mapClaims = MyClaims{
+			UserInfo: user,
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    "ldp发型",
-				Subject:   nickname,
+				Subject:   user.Nickname,
 				Audience:  jwt.ClaimStrings{"受众为前段资源"},
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 			},
 		}
 		token = jwt.NewWithClaims(jwt.SigningMethodHS256, mapClaims)
 	)
-	if t, err = token.SignedString(sk); err != nil {
+	if t, err = token.SignedString([]byte(sk)); err != nil {
 		return t, err
 	}
 	return t, err

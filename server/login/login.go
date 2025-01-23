@@ -34,6 +34,7 @@ func (s *loginServer) Login(ctx context.Context, params *login.LoginReq) (*login
 		userInfo = new(userM.User)
 		resp     = &login.LoginResp{
 			Success: true,
+			Data:    new(login.LoginDetail),
 		}
 		md5pwd = md5.New().Sum([]byte(params.GetPassword()))
 	)
@@ -43,7 +44,7 @@ func (s *loginServer) Login(ctx context.Context, params *login.LoginReq) (*login
 		return resp, code.PwdOrNicknameMatchErr
 	}
 
-	if resp.Data.Token, err = jwt.SignJwt(conf.Conf.JwtSk, userInfo.Nickname); err != nil {
+	if resp.Data.Token, err = jwt.SignJwt(conf.Conf.JwtSk, jwt.UserInfo{Id: userInfo.ID, Nickname: userInfo.Nickname}); err != nil {
 		return resp, err
 	}
 	grpclog.Info(params, resp)

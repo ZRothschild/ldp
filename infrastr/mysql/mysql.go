@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"github.com/ZRothschild/ldp/app/company/companyM"
+	"github.com/ZRothschild/ldp/app/dict/dictM"
 	"github.com/ZRothschild/ldp/app/user/userM"
 	"github.com/ZRothschild/ldp/app/userBindCompany/userBindCompanyM"
 	"github.com/ZRothschild/ldp/infrastr/log"
@@ -32,15 +33,20 @@ func NewDb(cfg *config.Config) *DB {
 
 func (db *DB) NewConfig(cfg *config.Config) *mysqlD.Config {
 	var (
-		c = mysqlD.NewConfig()
+		err error
+		c   = mysqlD.NewConfig()
 	)
+	if c.Loc, err = time.LoadLocation("Asia/Shanghai"); err != nil {
+		panic(err)
+	}
 	c.User = cfg.Mysql.User
 	c.Passwd = cfg.Mysql.Passwd
 	c.Net = cfg.Mysql.Net
 	c.Addr = cfg.Mysql.Addr
 	c.DBName = cfg.Mysql.DBName
 	c.Collation = cfg.Mysql.Collation
-	c.Loc = time.Local
+	// 它决定了从数据库读取的时间类型（如 DATETIME, TIMESTAMP）是否会被自动解析为 Go 的 time.Time 类型
+	c.ParseTime = true
 	return c
 }
 
@@ -68,17 +74,18 @@ func (db *DB) Open(cfg *config.Config) error {
 		return err
 	}
 
-	if pinger, ok := db.ConnPool.(interface{ Ping() error }); ok {
-		err = pinger.Ping()
+	if pinger, ok := db.ConnPool.(interface{ Ping() error }); ok && pinger.Ping() != nil {
+		return err
 	}
 
 	if err = db.Migrator(); err != nil {
 		return err
 	}
-	var (
-		u = make([]userM.User, 0)
-	)
-	db.Model(userM.User{}).Find(&u)
+
+	//var (
+	//	u = make([]userM.User, 0)
+	//)
+	//db.Model(userM.User{}).Find(&u)
 	return err
 }
 
@@ -92,5 +99,10 @@ func (db *DB) Migrator() error {
 	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户绑定公司表';").AutoMigrate(&userBindCompanyM.UserBindCompany{}); err != nil {
 		return err
 	}
+
+	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='子典表';").AutoMigrate(&dictM.Dict{}); err != nil {
+		return err
+	}
+
 	return nil
 }

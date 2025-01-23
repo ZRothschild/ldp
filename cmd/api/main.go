@@ -47,6 +47,7 @@ func run() error {
 		l   net.Listener
 		s   = grpc.NewServer()
 		mux = runtime.NewServeMux(
+			runtime.WithMiddlewares(),
 			runtime.WithErrorHandler(opt.CustomHTTPErrorHandler),
 			runtime.WithForwardResponseRewriter(opt.CustomForwardResponseRewriter),
 			runtime.WithOutgoingHeaderMatcher(opt.CustomOutgoingHeaderMatcher),
@@ -68,8 +69,9 @@ func run() error {
 	registerS := registerSrv.NewRegisterServer(userR, companyR, userBindCompanyR)
 	loginS := loginSrv.NewLoginServer(userR)
 
+	userS := userSrv.NewUserServer(userR)
 	// 这里是注册grpc服务器服务，http 可以不注册
-	user.RegisterUserServiceServer(s, userSrv.NewUserServer())
+	user.RegisterUserServiceServer(s, userS)
 	login.RegisterLoginServiceServer(s, loginS)
 	register.RegisterRegisterServiceServer(s, registerS)
 	company.RegisterCompanyServiceServer(s, companySrv.NewCompanyServer())
@@ -83,7 +85,7 @@ func run() error {
 	defer cancel()
 
 	// http 请求直接转发到 ServiceServer
-	if err = user.RegisterUserServiceHandlerServer(ctx, mux, userSrv.NewUserServer()); err != nil {
+	if err = user.RegisterUserServiceHandlerServer(ctx, mux, userS); err != nil {
 		log.Printf("Failed RegisterUserServiceHandlerServer: %v", err)
 		return err
 	}
@@ -126,9 +128,12 @@ func run() error {
 		log.Printf("Failed RegisterCompanyServiceHandlerFromEndpoint: %v", err)
 		return err
 	}
-	addr = ":" + strconv.Itoa(conf.Conf.HttpPort)
-	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(addr, mux)
+	
+	srv := &http.Server{
+		Addr:    ":" + strconv.Itoa(conf.Conf.HttpPort),
+		Handler: mux, // logRequestBody(allowCORS(mux)),
+	}
+	return srv.ListenAndServe()
 }
 
 func main() {
